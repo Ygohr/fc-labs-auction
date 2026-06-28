@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -9,6 +7,9 @@ services:
       - "8080:8080"
     env_file:
       - cmd/auction/.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
     command: sh -c "/auction"
     networks:
       - localNetwork
@@ -20,6 +21,11 @@ services:
       - "27017:27017"
     env_file:
       - cmd/auction/.env
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok", "--username", "admin", "--password", "admin", "--authenticationDatabase", "admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - mongo-data:/data/db
     networks:
